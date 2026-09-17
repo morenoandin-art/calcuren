@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalkulator Urgentmu Bolo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#070a10;
+    --bg-1:#0c121b;
+    --panel:#121a26;
+    --panel-2:#0e1520;
+    --line:#1f2c3d;
+    --line-bright:#2c3e56;
+    --cyan:#4be8ff;
+    --cyan-dim:#1f6a7a;
+    --amber:#ffd23f;
+    --amber-dim:#7a5f16;
+    --text:#dff3fb;
+    --text-dim:#5f7c94;
+    --danger:#ff5f6d;
+  }
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg-0:#e7ebf0;
+      --bg-1:#dde3ea;
+      --panel:#f2f5f8;
+      --panel-2:#e9edf2;
+      --line:#c3ccd6;
+      --line-bright:#a9b6c4;
+      --text:#132030;
+      --text-dim:#5b6b7c;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg-0:#e7ebf0;
+    --bg-1:#dde3ea;
+    --panel:#f2f5f8;
+    --panel-2:#e9edf2;
+    --line:#c3ccd6;
+    --line-bright:#a9b6c4;
+    --text:#132030;
+    --text-dim:#5b6b7c;
+  }
+
+  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 20% -10%, rgba(75,232,255,0.06), transparent 45%),
+      radial-gradient(circle at 90% 110%, rgba(255,210,63,0.05), transparent 40%),
+      var(--bg-0);
+    background-color: var(--bg-0);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px 16px;
+    font-family: 'Chakra Petch', ui-sans-serif, system-ui, sans-serif;
+    overflow-x:hidden;
+  }
+
+  .rig{
+    position:relative;
+    width:100%;
+    max-width:360px;
+  }
+
+  /* faint circuit trace background behind the device */
+  .traces{
+    position:absolute;
+    inset:-40px;
+    pointer-events:none;
+    opacity:.5;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 26px 26px;
+    -webkit-mask-image: radial-gradient(circle at 50% 40%, black, transparent 70%);
+    mask-image: radial-gradient(circle at 50% 40%, black, transparent 70%);
+  }
+
+  .device{
+    position:relative;
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line-bright);
+    border-radius:22px;
+    padding:18px;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.02) inset,
+      0 20px 60px rgba(0,0,0,0.5),
+      0 0 40px rgba(75,232,255,0.05);
+  }
+
+  .device::before{
+    content:"";
+    position:absolute;
+    top:10px; left:50%;
+    transform:translateX(-50%);
+    width:46px; height:4px;
+    border-radius:3px;
+    background: var(--line-bright);
+    opacity:.6;
+  }
+
+  .brand-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px 6px 10px;
+    font-size:11px;
+    letter-spacing:.12em;
+    color: var(--text-dim);
+  }
+  .brand-row .dot{
+    width:7px; height:7px; border-radius:50%;
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan), 0 0 2px var(--cyan);
+    display:inline-block;
+    margin-right:6px;
+    vertical-align:middle;
+  }
+
+  .screen{
+    position:relative;
+    margin: 4px 4px 16px;
+    padding: 22px 18px 16px;
+    border-radius:14px;
+    background:
+      linear-gradient(180deg, rgba(75,232,255,0.05), transparent 40%),
+      #060a10;
+    border:1px solid var(--line);
+    overflow:hidden;
+  }
+  :root[data-theme="light"] .screen{ background:#0d1520; }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]) .screen{ background:#0d1520; }
+  }
+
+  .screen::after{
+    content:"";
+    position:absolute; inset:0;
+    background: repeating-linear-gradient(
+      0deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px,
+      transparent 1px, transparent 3px
+    );
+    pointer-events:none;
+  }
+
+  .prev-line{
+    min-height:18px;
+    font-family:'Share Tech Mono', monospace;
+    font-size:14px;
+    color: var(--text-dim);
+    text-align:right;
+    letter-spacing:.03em;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .main-line{
+    font-family:'Share Tech Mono', monospace;
+    font-size:42px;
+    line-height:1.15;
+    text-align:right;
+    color:#eafcff;
+    text-shadow: 0 0 10px rgba(75,232,255,0.55), 0 0 2px rgba(75,232,255,0.4);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    transition: text-shadow .08s ease, transform .08s ease;
+  }
+  .main-line.zap{
+    text-shadow: 0 0 2px #fff, 0 0 22px var(--cyan), 0 0 40px var(--cyan);
+  }
+
+  .keys{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:10px;
+    padding:2px 4px 4px;
+  }
+
+  button.key{
+    position:relative;
+    appearance:none;
+    border:none;
+    outline:none;
+    cursor:pointer;
+    height:60px;
+    border-radius:12px;
+    font-family:'Chakra Petch', sans-serif;
+    font-size:20px;
+    font-weight:600;
+    color: var(--text);
+    background: linear-gradient(180deg, #182233, #10161f);
+    border:1px solid var(--line);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.015) inset;
+    transition: transform .05s ease, box-shadow .05s ease, background .12s ease;
+    overflow:visible;
+    isolation:isolate;
+  }
+  button.key:active{
+    transform: translateY(2px);
+    box-shadow: 0 0 0 rgba(0,0,0,0.35);
+  }
+  button.key:focus-visible{
+    box-shadow: 0 0 0 2px var(--cyan);
+  }
+
+  button.key.num{
+    background: linear-gradient(180deg, #131c29, #0c121b);
+  }
+  button.key.num.charged{
+    border-color: var(--cyan);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.35), 0 0 14px rgba(75,232,255,0.65), 0 0 0 1px rgba(75,232,255,0.3) inset;
+  }
+
+  button.key.op{
+    background: linear-gradient(180deg, #241c10, #1a140b);
+    color: var(--amber);
+    border-color: var(--amber-dim);
+  }
+  button.key.op:active{ background: linear-gradient(180deg, #2c2210, #201808); }
+
+  button.key.fn{
+    color: var(--text-dim);
+    font-size:16px;
+  }
+
+  button.key.eq{
+    background: linear-gradient(180deg, #14343a, #0c2226);
+    color: var(--cyan);
+    border-color: var(--cyan-dim);
+    grid-row: span 1;
+  }
+  button.key.eq:active{ background: linear-gradient(180deg, #184048, #0e282d); }
+
+  button.key.zero{ grid-column: span 2; }
+
+  .footer-note{
+    text-align:center;
+    font-size:10px;
+    letter-spacing:.14em;
+    color: var(--text-dim);
+    padding: 12px 4px 2px;
+  }
+
+  /* ---- lightning bolt effect ---- */
+  .bolt-layer{
+    position:absolute;
+    inset: -70px -30px;
+    pointer-events:none;
+    overflow:visible;
+    z-index:5;
+  }
+  .bolt{
+    position:absolute;
+    top:50%; left:50%;
+    width:26px;
+    height:90px;
+    transform: translate(-50%,-78%) scale(0.4);
+    opacity:0;
+    filter: drop-shadow(0 0 6px var(--cyan)) drop-shadow(0 0 14px rgba(75,232,255,0.8));
+  }
+  .bolt path{
+    fill: #fff;
+  }
+  .bolt.strike{
+    animation: bolt-strike .38s ease-out forwards;
+  }
+  @keyframes bolt-strike{
+    0%   { opacity:0; transform: translate(-50%,-78%) scaleY(0.3) scaleX(0.6); }
+    12%  { opacity:1; transform: translate(-50%,-78%) scaleY(1) scaleX(1.1); }
+    28%  { opacity:.5; transform: translate(-50%,-78%) scaleY(1) scaleX(0.9); }
+    40%  { opacity:1; transform: translate(-50%,-78%) scaleY(1) scaleX(1); }
+    70%  { opacity:.7; }
+    100% { opacity:0; transform: translate(-50%,-78%) scaleY(1.05) scaleX(0.95); }
+  }
+
+  .flash-ring{
+    position:absolute;
+    top:50%; left:50%;
+    width:10px; height:10px;
+    border-radius:50%;
+    transform: translate(-50%,-50%) scale(1);
+    background: radial-gradient(circle, rgba(255,255,255,0.9), rgba(75,232,255,0.5) 40%, transparent 70%);
+    opacity:0;
+    pointer-events:none;
+  }
+  .flash-ring.pulse{
+    animation: ring-pulse .42s ease-out forwards;
+  }
+  @keyframes ring-pulse{
+    0%   { opacity:.9; transform: translate(-50%,-50%) scale(0.3); }
+    60%  { opacity:.5; transform: translate(-50%,-50%) scale(4.5); }
+    100% { opacity:0;  transform: translate(-50%,-50%) scale(6); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .bolt.strike, .flash-ring.pulse, button.key, .main-line{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="rig">
+  <div class="traces"></div>
+  <div class="device">
+    <div class="brand-row">
+      <span><span class="dot"></span>CALCULATORZ&nbsp;RENO</span>
+      <span id="clock">00:00</span>
+    </div>
+
+    <div class="screen">
+      <div class="prev-line" id="prevLine">&nbsp;</div>
+      <div class="main-line" id="mainLine">0</div>
+    </div>
+
+    <div class="keys" id="keys">
+      <button class="key fn" data-action="clear">AC</button>
+      <button class="key fn" data-action="sign">±</button>
+      <button class="key fn" data-action="percent">%</button>
+      <button class="key op" data-op="÷">÷</button>
+
+      <button class="key num" data-num="7">7</button>
+      <button class="key num" data-num="8">8</button>
+      <button class="key num" data-num="9">9</button>
+      <button class="key op" data-op="×">×</button>
+
+      <button class="key num" data-num="4">4</button>
+      <button class="key num" data-num="5">5</button>
+      <button class="key num" data-num="6">6</button>
+      <button class="key op" data-op="−">−</button>
+
+      <button class="key num" data-num="1">1</button>
+      <button class="key num" data-num="2">2</button>
+      <button class="key num" data-num="3">3</button>
+      <button class="key op" data-op="+">+</button>
+
+      <button class="key num zero" data-num="0">0</button>
+      <button class="key num" data-num=".">.</button>
+      <button class="key eq" data-action="equals">=</button>
+    </div>
+
+    <div class="footer-note">TAP ANGKA UNTUK MEMICU PETIR</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const mainLine = document.getElementById('mainLine');
+  const prevLine = document.getElementById('prevLine');
+  const clockEl = document.getElementById('clock');
+
+  function tickClock(){
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    clockEl.textContent = hh + ':' + mm;
+  }
+  tickClock();
+  setInterval(tickClock, 15000);
+
+  let current = '0';
+  let previous = null;
+  let pendingOp = null;
+  let justEvaluated = false;
+  let resetNext = false;
+
+  function fmt(numStr){
+    if (numStr === 'Error') return numStr;
+    let neg = numStr.startsWith('-');
+    let s = neg ? numStr.slice(1) : numStr;
+    let [intPart, decPart] = s.split('.');
+    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    let out = intPart + (decPart !== undefined ? ',' + decPart : '');
+    return (neg ? '-' : '') + out;
+  }
+
+  function render(){
+    mainLine.textContent = fmt(current);
+    if (pendingOp && previous !== null){
+      prevLine.textContent = fmt(previous) + ' ' + pendingOp;
+    } else {
+      prevLine.textContent = '\u00A0';
+    }
+  }
+
+  function zapScreen(){
+    mainLine.classList.remove('zap');
+    void mainLine.offsetWidth;
+    mainLine.classList.add('zap');
+    setTimeout(()=>mainLine.classList.remove('zap'), 180);
+  }
+
+  function inputDigit(d){
+    if (justEvaluated){
+      current = (d === '.') ? '0.' : d;
+      justEvaluated = false;
+      previous = null;
+      pendingOp = null;
+      render();
+      return;
+    }
+    if (resetNext){
+      current = (d === '.') ? '0.' : d;
+      resetNext = false;
+      render();
+      return;
+    }
+    if (d === '.'){
+      if (current.includes('.')) return;
+      current = current + '.';
+      render();
+      return;
+    }
+    if (current === '0'){
+      current = d;
+    } else {
+      if (current.replace('-','').replace('.','').length >= 15) return;
+      current = current + d;
+    }
+    render();
+  }
+
+  function compute(a, op, b){
+    a = parseFloat(a); b = parseFloat(b);
+    let r;
+    switch(op){
+      case '+': r = a + b; break;
+      case '−': r = a - b; break;
+      case '×': r = a * b; break;
+      case '÷': r = b === 0 ? NaN : a / b; break;
+      default: r = b;
+    }
+    if (!isFinite(r) || isNaN(r)) return 'Error';
+    r = Math.round(r * 1e10) / 1e10;
+    return String(r);
+  }
+
+  function chooseOp(op){
+    if (pendingOp && previous !== null && !justEvaluated && !resetNext){
+      const result = compute(previous, pendingOp, current);
+      previous = result;
+      current = result;
+    } else if (previous === null){
+      previous = current;
+    }
+    pendingOp = op;
+    justEvaluated = false;
+    resetNext = true;
+    current = previous;
+    render();
+  }
+
+  function equals(){
+    if (pendingOp === null || previous === null) return;
+    const result = compute(previous, pendingOp, current);
+    current = result;
+    previous = null;
+    pendingOp = null;
+    justEvaluated = true;
+    render();
+  }
+
+  function clearAll(){
+    current = '0'; previous = null; pendingOp = null; justEvaluated = false; resetNext = false;
+    render();
+  }
+
+  function toggleSign(){
+    if (current === '0' || current === 'Error') return;
+    current = current.startsWith('-') ? current.slice(1) : '-' + current;
+    render();
+  }
+
+  function percent(){
+    if (current === 'Error') return;
+    let v = parseFloat(current);
+    v = v / 100;
+    current = String(v);
+    render();
+  }
+
+  // ---- lightning bolt visual ----
+  const boltPath = "M14 0 L2 34 L11 34 L4 62 L22 26 L13 26 Z";
+
+  function strikeBolt(btn){
+    let layer = btn.querySelector('.bolt-layer');
+    if (!layer){
+      layer = document.createElement('div');
+      layer.className = 'bolt-layer';
+      layer.innerHTML =
+        '<div class="flash-ring"></div>' +
+        '<svg class="bolt" viewBox="0 0 26 62" xmlns="http://www.w3.org/2000/svg"><path d="' + boltPath + '"/></svg>';
+      btn.appendChild(layer);
+    }
+    const ring = layer.querySelector('.flash-ring');
+    const bolt = layer.querySelector('.bolt');
+
+    ring.classList.remove('pulse'); void ring.offsetWidth; ring.classList.add('pulse');
+    bolt.classList.remove('strike'); void bolt.offsetWidth; bolt.classList.add('strike');
+
+    btn.classList.remove('charged'); void btn.offsetWidth; btn.classList.add('charged');
+    setTimeout(()=> btn.classList.remove('charged'), 260);
+
+    zapScreen();
+  }
+
+  document.getElementById('keys').addEventListener('click', (e)=>{
+    const btn = e.target.closest('button.key');
+    if (!btn) return;
+
+    if (btn.dataset.num !== undefined){
+      strikeBolt(btn);
+      inputDigit(btn.dataset.num);
+      return;
+    }
+    if (btn.dataset.op !== undefined){
+      chooseOp(btn.dataset.op);
+      return;
+    }
+    const action = btn.dataset.action;
+    if (action === 'clear') clearAll();
+    else if (action === 'sign') toggleSign();
+    else if (action === 'percent') percent();
+    else if (action === 'equals') equals();
+  });
+
+  window.addEventListener('keydown', (e)=>{
+    if (e.key >= '0' && e.key <= '9'){
+      const btn = document.querySelector('button.key[data-num="'+e.key+'"]');
+      if (btn) btn.click();
+    } else if (e.key === '.'){
+      document.querySelector('button.key[data-num="."]').click();
+    } else if (e.key === '+'){
+      chooseOp('+');
+    } else if (e.key === '-'){
+      chooseOp('−');
+    } else if (e.key === '*'){
+      chooseOp('×');
+    } else if (e.key === '/'){
+      e.preventDefault();
+      chooseOp('÷');
+    } else if (e.key === 'Enter' || e.key === '='){
+      equals();
+    } else if (e.key === 'Escape'){
+      clearAll();
+    } else if (e.key === 'Backspace'){
+      if (current.length > 1) current = current.slice(0,-1);
+      else current = '0';
+      render();
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
